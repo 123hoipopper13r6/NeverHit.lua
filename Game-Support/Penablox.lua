@@ -488,13 +488,16 @@ end)
 
 task.spawn(function()
     while task.wait(1) do
+        if not getgenv().HitboxExtenderEnabled then return end
+
         for _,char in pairs(game:GetService("Players"):GetChildren()) do
-            if char.Character and char.Character:FindFirstChild("HumanoidRootPart") and char.Character ~= game:GetService("Players").LocalPlayer.Character then
-                local hrp = char.Character.HumanoidRootPart
+            if char.Character and char.Character:FindFirstChild("Head") and char.Character ~= game:GetService("Players").LocalPlayer.Character then
+                local hrp = char.Character.Head
                 local originalSize = hrp.Size
                 game:GetService("RunService").Heartbeat:Connect(function()
                     if getgenv().HitboxExtenderEnabled then
-                        hrp.Size = Vector3.new(10,10,10)
+                        hrp.CanCollide = false
+                        hrp.Size = Vector3.new(50,50,50)
                     else
                         hrp.Size = originalSize
                     end
