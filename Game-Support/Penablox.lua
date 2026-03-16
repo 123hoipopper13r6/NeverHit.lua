@@ -14,8 +14,7 @@ function checkgetgenv()
     if getgenv and type(getgenv) == "function" then
         thegetgenvissupportedomg = true
     else
-        warn("getgenv is not supported.")
-        return
+        warn("getgenv is not supported lmao, just give up.")
     end
 end
 
@@ -29,7 +28,7 @@ local Notification = Fatality:CreateNotifier();
 
 
 if game.PlaceId ~= 122764594952227 then
-    Notification:Notify({ Title = "Error", Content = "This script is for Penablox HVH only!", Icon = "alert" })
+    Notification:Notify({ Title = "Bell", Content = "This script is for Penablox HVH only!", Icon = "alert" })
     return
 end
 
@@ -78,7 +77,7 @@ local function checkifsupported()
         Notification:Notify({
             Title = "Error",
             Content = "Your executor is ass",
-            Icon = "alert"
+            Icon = "Bell"
         })
 
         return false
@@ -90,7 +89,7 @@ local function checkifsupported()
             Title = "NeverHit",
             Content = "Executor is not supported! Some features might not work or crash.",
             Duration = 20,
-            Icon = "alert"
+            Icon = "Bell"
         })
 
         return false
@@ -108,12 +107,10 @@ end
 
 -- check
 
---[[
 if getgenv().NeverHitIsLoaded == true then
     warn("NeverHit is already loaded!")
     return
 end
-]]
 
 -- globals
 
@@ -252,6 +249,25 @@ task.spawn(function()
             end)
         end
     end
+end)
+
+-- Infinite Velocity
+
+task.spawn(function()
+    if not checkspecificfunction("hookmetamethod") then
+        warn("hookmetamethod is missing, can't start infinite velocity.")
+        return
+    end
+
+    local oldIndex
+    oldIndex = hookmetamethod(game, "__index", function(t, k)
+        if getgenv().InfiniteVelocity and not checkcaller() then
+            if (k == "Velocity" or k == "AssemblyLinearVelocity") and t.Name == "HumanoidRootPart" then
+                return Vector3.new(math.huge, math.huge, math.huge)
+            end
+        end
+        return oldIndex(t, k)
+    end)
 end)
 
 -- find the closet player for the shot
@@ -453,6 +469,41 @@ task.spawn(function()
     end)
 end)
 
+-- Infinite ammo
+
+task.spawn(function()
+    if not checkspecificfunction("FireServer") then
+        warn("FireServer is missing, do infinite ammo.")
+        return
+    end
+
+    while task.wait(1) do
+        if getgenv().InfiniteAmmo then
+            game:GetService("ReplicatedStorage"):WaitForChild("Reload"):FireServer()
+        end
+    end
+end)
+
+-- hitbox extender
+
+task.spawn(function()
+    while task.wait() do
+        for _,char in pairs(game:GetService("Players"):GetChildren()) do
+            if char.Character and char.Character:FindFirstChild("HumanoidRootPart") then
+                local hrp = char.Character.HumanoidRootPart
+                local originalSize = hrp.Size
+                game:GetService("RunService").Heartbeat:Connect(function()
+                    if getgenv().HitboxExtenderEnabled then
+                        hrp.Size = Vector3.new(10,10,10)
+                    else
+                        hrp.Size = originalSize
+                    end
+                end)
+            end
+        end
+    end
+end)
+
 -- other stuff
 
 -- edit game's things so it looks cool
@@ -583,6 +634,14 @@ do
             getgenv().RageBotHitPart = v
         end
     })
+
+    ExploitSect:AddToggle({
+        Name = "Infinite Ammo",
+        Risky = true,
+        Callback = function(v)
+            getgenv().InfiniteAmmo = v
+        end
+    })
 end
 
 -- anti aim
@@ -687,7 +746,29 @@ do
         end
     })
 
+    Exploits:AddToggle({
+        Name = "Infinite Velocity",
+        Risky = true,
+        Callback = function(v)
+            getgenv().InfiniteVelocity = v
+        end
+    })
+
+    Exploits:AddToggle({
+        Name = "Hitbox Extender(Beta,broken)",
+        Risky = true,
+        Callback = function(v)
+            getgenv().HitboxExtenderEnabled = v
+        end
+    })
 end
+
+-- rejoin on kick
+
+game:GetService("GuiService").ErrorMessageChanged:Connect(function()
+    task.wait(0.5)
+    game:GetService("TeleportService"):Teleport(game.PlaceId, game:GetService("Players").LocalPlayer)
+end)
 
 
 -- cleanup and prevent multiple loads
