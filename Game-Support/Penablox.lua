@@ -14,7 +14,8 @@ function checkgetgenv()
     if getgenv and type(getgenv) == "function" then
         thegetgenvissupportedomg = true
     else
-        warn("getgenv is not supported lmao, just give up.")
+        warn("getgenv is not supported.")
+        return
     end
 end
 
@@ -26,12 +27,12 @@ end
 
 local Notification = Fatality:CreateNotifier();
 
---[[
+
 if game.PlaceId ~= "122764594952227" then
     Notification:Notify({ Title = "Error", Content = "This script is for Penablox HVH only!", Icon = "alert" })
     return
 end
-]]
+
 -- check if the executor is supported
 
 -- print("Checking if the executor is supported, this might take 1-2 seconds")
