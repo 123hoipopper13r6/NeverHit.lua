@@ -26,12 +26,12 @@ end
 
 local Notification = Fatality:CreateNotifier();
 
-
-if game.PlaceId ~= 122764594952227 then
-    Notification:Notify({ Title = "Bell", Content = "This script is for Penablox HVH only!", Icon = "alert" })
+--[[
+if game.PlaceId ~= "122764594952227" then
+    Notification:Notify({ Title = "Error", Content = "This script is for Penablox HVH only!", Icon = "alert" })
     return
 end
-
+]]
 -- check if the executor is supported
 
 -- print("Checking if the executor is supported, this might take 1-2 seconds")
@@ -77,7 +77,7 @@ local function checkifsupported()
         Notification:Notify({
             Title = "Error",
             Content = "Your executor is ass",
-            Icon = "Bell"
+            Icon = "alert"
         })
 
         return false
@@ -89,7 +89,7 @@ local function checkifsupported()
             Title = "NeverHit",
             Content = "Executor is not supported! Some features might not work or crash.",
             Duration = 20,
-            Icon = "Bell"
+            Icon = "alert"
         })
 
         return false
@@ -107,10 +107,12 @@ end
 
 -- check
 
+--[[
 if getgenv().NeverHitIsLoaded == true then
     warn("NeverHit is already loaded!")
     return
 end
+]]
 
 -- globals
 
@@ -487,9 +489,9 @@ end)
 -- hitbox extender
 
 task.spawn(function()
-    while task.wait() do
+    while task.wait(1) do
         for _,char in pairs(game:GetService("Players"):GetChildren()) do
-            if char.Character and char.Character:FindFirstChild("HumanoidRootPart") then
+            if char.Character and char.Character:FindFirstChild("HumanoidRootPart") and char.Character ~= game:GetService("Players").LocalPlayer.Character then
                 local hrp = char.Character.HumanoidRootPart
                 local originalSize = hrp.Size
                 game:GetService("RunService").Heartbeat:Connect(function()
