@@ -28,7 +28,7 @@ end
 local Notification = Fatality:CreateNotifier();
 
 
-if game.PlaceId ~= "122764594952227" then
+if game.PlaceId ~= 122764594952227 then
     Notification:Notify({ Title = "Error", Content = "This script is for Penablox HVH only!", Icon = "alert" })
     return
 end
