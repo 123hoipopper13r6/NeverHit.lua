@@ -511,21 +511,16 @@ end)
 -- Infinite ammo
 
 task.spawn(function()
-    if not checkspecificfunction("FireServer") then
-
-        Notification:Notify({
-            Title = "Warning",
-            Content = "FireServer is missing, do infinite ammo.",
-            Icon = "bell"
-        })
-
-        --warn("FireServer is missing, do infinite ammo.")
-        return
-    end
-
     while task.wait(1) do
-        if getgenv().InfiniteAmmo then
-            game:GetService("ReplicatedStorage"):WaitForChild("Reload"):FireServer()
+        local s,f = pcall(function()
+            if getgenv().InfiniteAmmo then
+                game:GetService("ReplicatedStorage"):WaitForChild("Reload"):FireServer()
+            end
+        end)
+
+        if not s then
+            warn("Failed to reload for infinite ammo, error: " .. tostring(f))
+            break
         end
     end
 end)
