@@ -185,7 +185,14 @@ end
 task.spawn(function()
 
     if not checkspecificfunction("getgc") then
-        warn("getgc is missing, can't disable client checks.")
+
+        Notification:Notify({
+            Title = "Warning",
+            Content = "getgc is missing, can't disable client checks.",
+            Icon = "bell"
+        })
+        
+        --warn("getgc is missing, can't disable client checks.")
         return
     end
 
@@ -218,7 +225,14 @@ end)
 task.spawn(function()
 
     if not checkspecificfunction("require") then
-        warn("require is missing, can't start anti-aim.")
+
+        Notification:Notify({
+            Title = "Warning",
+            Content = "require is missing, can't start anti-aim.",
+            Icon = "bell"
+        })
+        
+        --warn("require is missing, can't start anti-aim.")
         return
     end
 
@@ -256,7 +270,14 @@ end)
 
 task.spawn(function()
     if not checkspecificfunction("hookmetamethod") then
-        warn("hookmetamethod is missing, can't start infinite velocity.")
+
+        Notification:Notify({
+            Title = "Warning",
+            Content = "hookmetamethod is missing, can't start infinite velocity.",
+            Icon = "bell"
+        })
+
+        --warn("hookmetamethod is missing, can't start infinite velocity.")
         return
     end
 
@@ -351,78 +372,95 @@ end
 
 -- forcehit method by hooking the event, changing the hit part and hitpos, and then sending it to the server, it can miss sometimes because of how the game handles hit detection.
 
-local oldFireServer
-oldFireServer = hookfunction(Instance.new("RemoteEvent").FireServer, function(self, ...)
-    local args = {...}
-    if tostring(self) == "MainEvent" and getgenv().RageBotEnabled then
-        if getgenv().RageBotMethod == "Event Hook" and checkspecificfunction("hookfunction") then
-            local action = decryptstring(args[1])
-            if action == "Shoot" or action == "MeleeHit" then
+task.spawn(function()
 
-                local target = GetClosestPlayer()
+    if not checkspecificfunction("hookfunction") then
+        Notification:Notify({
+            Title = "Warning",
+            Content = "hookfunction is missing, can't start force hit method.",
+            Icon = "bell"
+        })
+        
+        --warn("hookfunction is missing, can't start force hit method.")
+        return
+    end
 
-                if target and target.Character and target.Character:FindFirstChild("Head") then
 
-                    local HitPos = getgenv().RageBotHitPos or "Torso"
+    local s,f = pcall(function()
+        local oldFireServer
+        oldFireServer = hookfunction(Instance.new("RemoteEvent").FireServer, function(self, ...)
+            local args = {...}
+            if tostring(self) == "MainEvent" and getgenv().RageBotEnabled then
+                if getgenv().RageBotMethod == "Event Hook" and checkspecificfunction("hookfunction") then
+                    local action = decryptstring(args[1])
+                    if action == "Shoot" or action == "MeleeHit" then
 
-                    local AutoPart = nil
+                        local target = GetClosestPlayer()
 
-                    if getgenv().RageBotHitPos == "Auto" then
-                        if game:GetService("Players").LocalPlayer:FindFirstChild("TargetPos") and game:GetService("Players").LocalPlayer:FindFirstChild("TargetPos").Value ~= Vector3.new(0,0,0) then
-                            AutoPart = game:GetService("Players").LocalPlayer.TargetPos.Value
-                        else
-                            AutoPart = "Torso"
-                        end
-                    end
+                        if target and target.Character and target.Character:FindFirstChild("Head") then
 
-                    local dmgpart = nil
+                            local HitPos = getgenv().RageBotHitPos or "Torso"
 
-                    dmgpart = getgenv().RageBotHitPart or "Head" -- might rework this later
+                            local AutoPart = nil
 
-                    if HitPos and dmgpart then
-
-                        args[3] = encryptstring(dmgpart)
-
-                        if AutoPart then
-                            local foolishpart = GetPartNameAtPos(AutoPart)
-                            local tuffpart = target.Character:FindFirstChild(foolishpart)
-
-                            if tuffpart and tuffpart.Position ~= Vector3.new(0,0,0) then
-                                args[7] = tuffpart.Position or AutoPart
-
-                                if typeof(args[6]) == "Vector3" and typeof(AutoPart) == "Vector3" then
-                                    args[5] = (args[6] - tuffpart.Position).Magnitude
+                            if getgenv().RageBotHitPos == "Auto" then
+                                if game:GetService("Players").LocalPlayer:FindFirstChild("TargetPos") and game:GetService("Players").LocalPlayer:FindFirstChild("TargetPos").Value ~= Vector3.new(0,0,0) then
+                                    AutoPart = game:GetService("Players").LocalPlayer.TargetPos.Value
                                 else
-                                    warn("args[5] or tuffpart dosen't have a pos")
-                                    end
-                            else
-                                args[7] = AutoPart
-
-                                if typeof(args[6]) == "Vector3" and typeof(AutoPart) == "Vector3" then
-                                    args[5] = (args[6] - AutoPart).Magnitude
-                                else
-                                    warn("args[5] or AutoPart is not a vector3")
+                                    AutoPart = "Torso"
                                 end
                             end
 
-                        else
-                            args[7] = target.Character[HitPos].Position
+                            local dmgpart = nil
 
-                            if typeof(args[6]) == "Vector3" then
-                                args[5] = (args[6] - target.Character[HitPos].Position).Magnitude
+                            dmgpart = getgenv().RageBotHitPart or "Head" -- might rework this later
+
+                            if HitPos and dmgpart then
+
+                                args[3] = encryptstring(dmgpart)
+
+                                if AutoPart then
+                                    local foolishpart = GetPartNameAtPos(AutoPart)
+                                    local tuffpart = target.Character:FindFirstChild(foolishpart)
+
+                                    if tuffpart and tuffpart.Position ~= Vector3.new(0,0,0) then
+                                        args[7] = tuffpart.Position or AutoPart
+
+                                        if typeof(args[6]) == "Vector3" and typeof(AutoPart) == "Vector3" then
+                                            args[5] = (args[6] - tuffpart.Position).Magnitude
+                                        else
+                                            warn("args[5] or tuffpart dosen't have a pos")
+                                            end
+                                    else
+                                        args[7] = AutoPart
+
+                                        if typeof(args[6]) == "Vector3" and typeof(AutoPart) == "Vector3" then
+                                            args[5] = (args[6] - AutoPart).Magnitude
+                                        else
+                                            warn("args[5] or AutoPart is not a vector3")
+                                        end
+                                    end
+
+                                else
+                                    args[7] = target.Character[HitPos].Position
+
+                                    if typeof(args[6]) == "Vector3" then
+                                        args[5] = (args[6] - target.Character[HitPos].Position).Magnitude
+                                    end
+                                end
+
+                                args[8] = encryptstring("nil")
+                                args[9] = encryptstring("nil")
+
                             end
                         end
-
-                        args[8] = encryptstring("nil")
-                        args[9] = encryptstring("nil")
-
                     end
                 end
             end
-        end
-    end
 
-    return oldFireServer(self, unpack(args))
+            return oldFireServer(self, unpack(args))
+        end)
+    end)
 end)
 
 -- Remove Velocity by hooking the movement module functions and returning values that would result in no velocity which dosen't work for now but maybe it will in some update.
@@ -457,7 +495,7 @@ task.spawn(function()
     oldMathRandom = hookfunction(math.random, function(...)
         local args = {...}
         
-        if getgenv().RemoveMathRandom then
+        if getgenv().RemoveMathRandom and checkcaller() then
             if #args == 0 then
                 return 0
             elseif #args == 1 then
@@ -474,7 +512,14 @@ end)
 
 task.spawn(function()
     if not checkspecificfunction("FireServer") then
-        warn("FireServer is missing, do infinite ammo.")
+
+        Notification:Notify({
+            Title = "Warning",
+            Content = "FireServer is missing, do infinite ammo.",
+            Icon = "bell"
+        })
+
+        --warn("FireServer is missing, do infinite ammo.")
         return
     end
 
@@ -495,12 +540,14 @@ task.spawn(function()
             if char.Character and char.Character:FindFirstChild("Head") and char.Character ~= game:GetService("Players").LocalPlayer.Character then
                 local hrp = char.Character.Head
                 local originalSize = hrp.Size
-                game:GetService("RunService").Heartbeat:Connect(function()
+
+                local con = game:GetService("RunService").Heartbeat:Connect(function()
                     if getgenv().HitboxExtenderEnabled then
                         hrp.CanCollide = false
                         hrp.Size = Vector3.new(50,50,50)
                     else
                         hrp.Size = originalSize
+                        con:Disconnect()
                     end
                 end)
             end
