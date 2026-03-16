@@ -158,8 +158,8 @@ function disabledefaultragebot()
         return
     end
 
-    if game:GetService("Players")["1eznng"]:FindFirstChild("Mindmg") then
-        game:GetService("Players")["1eznng"]:FindFirstChild("Mindmg").Value = 1
+    if game:GetService("Players").LocalPlayer:FindFirstChild("Mindmg") then
+        game:GetService("Players").LocalPlayer:FindFirstChild("Mindmg").Value = 1
     end
 
     local bob = workspace:FindFirstChild("Bob")
@@ -576,12 +576,12 @@ do
     local ExtaSect = RageMenu:AddSection({ Position = 'right', Name = "CONFIGURATION" });
 
     MainRage:AddToggle({
-        Name = "Custom resolver",
+        Name = "Custom resolver(didnt do it yet)",
         Callback = function(v)
             getgenv().CustomResolverEnabled = v
 
-            if v and game:GetService("Players")["1eznng"]:FindFirstChild("ResolverEnabled") then
-                game:GetService("Players")["1eznng"].ResolverEnabled.Value = false
+            if v and game:GetService("Players").LocalPlayer:FindFirstChild("ResolverEnabled") then
+                game:GetService("Players").LocalPlayer.ResolverEnabled.Value = false
             end
         end
     })
@@ -758,7 +758,7 @@ do
     })
 
     Exploits:AddToggle({
-        Name = "Hitbox Extender(Beta,broken)",
+        Name = "Hitbox Extender(Beta)",
         Risky = true,
         Callback = function(v)
             getgenv().HitboxExtenderEnabled = v
