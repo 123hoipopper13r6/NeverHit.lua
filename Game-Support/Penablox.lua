@@ -495,7 +495,7 @@ task.spawn(function()
     oldMathRandom = hookfunction(math.random, function(...)
         local args = {...}
         
-        if getgenv().RemoveMathRandom and checkcaller() then
+        if getgenv().RemoveMathRandom and not checkcaller() then
             if #args == 0 then
                 return 0
             elseif #args == 1 then
