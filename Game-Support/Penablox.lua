@@ -1,5 +1,6 @@
 -- ui lib
 
+-- https://cat-sus.gitbook.io/fatality
 local Fatality = loadstring(game:HttpGet("https://raw.githubusercontent.com/4lpaca-pin/Fatality/refs/heads/main/src/source.luau"))();
 
 
@@ -109,6 +110,13 @@ end
 -- check
 
 if getgenv().NeverHitIsLoaded == true then
+
+    Notification:Notify({
+        Title = "Warning",
+        Content = "Im already loaded!",
+        Icon = "bell"
+    })
+
     warn("NeverHit is already loaded!")
     return
 end
@@ -151,6 +159,19 @@ if not getgenv().typeofantiaim or not getgenv().antiaimjitter or not getgenv().a
 end
 
 -- functions
+
+function executeLua(thing)
+    pcall(function()
+        local luainterpreter = require(game:GetService("ReplicatedFirst"):WaitForChild("ShopAssistant"))
+
+        local c,r = luainterpreter(thing)
+
+        if not c then
+            warn("Failed to execute lua, error: " .. tostring(r))
+        end
+
+    end)
+end
 
 function disabledefaultragebot()
 
@@ -198,14 +219,32 @@ task.spawn(function()
 
     for _, v in pairs(getgc(true)) do
         if type(v) == "table" and rawget(v, "WalkspeedProtect") then
+
+            -- Movement checks
             v.WalkspeedProtect.enabled = false
             v.FlyProtect.enabled = false
             v.TeleportDetect.enabled = false
             v.CFrameMonitor.enabled = false
             v.NoClipProtect.enabled = false
-            v.HitboxProtect.enabled = false
 
-            print("Bypassed client checks.")
+            -- Part checks
+            v.HitboxProtect.enabled = false
+            v.PartRemoveProtect = false
+            v.PartRenameProtect = false
+
+        end
+    end
+
+    for _,v in pairs(getgc(true)) do
+        if type(v) == "table" and rawget(v, "RADIUS_KICK") and rawget(v, "POS_KICK") then
+            -- Idk how he found this, thx to cathak for this.
+            v.RADIUS_KICK = math.huge
+            v.POS_KICK = math.huge
+            v.POS_MISMATCH_TIME = math.huge
+            v.MISMATCH_THRESHOLD = math.huge
+            v.DT_SPAM_RADIUS = math.huge
+            v.DT_RADIUS = math.huge
+            v.RADIUS = math.huge
         end
     end
 
@@ -218,6 +257,15 @@ task.spawn(function()
             end
         end
     end
+
+    Notification:Notify({
+        Title = "NeverHit",
+        Content = "Client checks disabled",
+        Icon = "check"
+    })
+
+
+    -- print("Client checks disabled")
 end)
 
 -- AA update
@@ -273,7 +321,7 @@ task.spawn(function()
 
         Notification:Notify({
             Title = "Warning",
-            Content = "hookmetamethod is missing, can't start infinite velocity.",
+            Content = "hookmetamethod is missing, can't do infinite velocity.",
             Icon = "bell"
         })
 
@@ -290,6 +338,7 @@ task.spawn(function()
         end
         return oldIndex(t, k)
     end)
+
 end)
 
 -- find the closet player for the shot
@@ -463,9 +512,10 @@ task.spawn(function()
     end)
 end)
 
--- Remove Velocity by hooking the movement module functions and returning values that would result in no velocity which dosen't work for now but maybe it will in some update.
-
 task.spawn(function()
+
+    -- currently dosen't do anything.
+
     local MovementModule = require(game:GetService("ReplicatedStorage"):WaitForChild("MovementHandler"))
 
     local orig_speed = MovementModule.GetPlanarSpeed
@@ -519,7 +569,14 @@ task.spawn(function()
         end)
 
         if not s then
-            warn("Failed to reload for infinite ammo, error: " .. tostring(f))
+
+            Notification:Notify({
+                Title = "Warning",
+                Content = "Failed to reload for infinite ammo, error: " .. tostring(f),
+                Icon = "bell"
+            })
+
+            --warn("Failed to reload for infinite ammo, error: " .. tostring(f))
             break
         end
     end
@@ -535,6 +592,8 @@ task.spawn(function()
             if char.Character and char.Character:FindFirstChild("Head") and char.Character ~= game:GetService("Players").LocalPlayer.Character then
                 local hrp = char.Character.Head
                 local originalSize = hrp.Size
+                
+                -- i WILL rework this later, source: Trust me
 
                 local con = game:GetService("RunService").Heartbeat:Connect(function()
                     if getgenv().HitboxExtenderEnabled then
@@ -553,6 +612,10 @@ end)
 -- other stuff
 
 -- edit game's things so it looks cool
+
+--[[
+
+disabled cuz, the game is ass and i got annoyed editing this
 
 task.spawn(function()
 
@@ -576,17 +639,18 @@ task.spawn(function()
             frame:FindFirstChild("Text").Position = UDim2.new(0, 0, 0.5, 0)
             frame:FindFirstChild("Text").Size = UDim2.new(1, 0, 0.5, 0)
         else
-            warn("Couldn't change in game ui's. Something is missing.")
+
             Notification:Notify({
                 Title = "Error",
                 Content = "Couldn't change in game ui's. Something is missing.",
-                Icon = "alert"
+                Icon = "bell"
             })
 
+            --warn("Couldn't change in game ui's. Something is missing.")
         end
     end
 end)
-
+]]
 
 -- ui
 
@@ -638,9 +702,10 @@ do
         end
     })
 
-    ExploitSect:AddToggle({
+    local forcehittoggle = ExploitSect:AddToggle({
         Name = "Force Hit",
         Risky = true,
+        Option = true,
         Callback = function(v)
             getgenv().RageBotEnabled = v
 
@@ -650,7 +715,7 @@ do
         end
     })
 
-    ExploitSect:AddDropdown({
+    forcehittoggle.Option:AddDropdown({
         Name = "Method",
         Values = {"Event Hook"},
         Default = "Event Hook",
@@ -659,7 +724,7 @@ do
         end
     })
 
-    ExploitSect:AddDropdown({
+    forcehittoggle.Option:AddDropdown({
         Name = "Hit Position",
         Values = {"Auto","Head","Torso","HumanoidRootPart","Arms","Legs"},
         Default = "Auto",
@@ -672,7 +737,7 @@ do
         end
     })
 
-    ExploitSect:AddDropdown({
+    forcehittoggle.Option:AddDropdown({
         Name = "Damage Part",
         Values = {"Head","Torso","HumanoidRootPart","Arms","Legs"},
         Default = "Head",
@@ -688,6 +753,77 @@ do
             getgenv().InfiniteAmmo = v
         end
     })
+
+    -- Credits to cathak for this, thx for finding and decompiling ":3"
+
+    -- ts is really long
+
+    local function setspread(bs,ms,mjs,mins,msps,vi,hi,cm)
+        bs = bs or 0.5
+        ms = ms or 2.5
+        mjs = mjs or 15
+        mins = mins or 0.01
+        msps = msps or 15
+        vi = vi or 2
+        hi = hi or 0.2
+        cm = cm or 0.3
+
+        for _, whyareyoureadingthis in pairs(getgc(true)) do
+            if type(whyareyoureadingthis) == "table" and rawget(whyareyoureadingthis, "BaseSpread") and rawget(whyareyoureadingthis, "MoveSpread") and rawget(whyareyoureadingthis, "MaxJumpSpread") and rawget(whyareyoureadingthis, "MinSpread") and rawget(whyareyoureadingthis, "MaxSpread") and rawget(whyareyoureadingthis, "VelocityInfluence") and rawget(whyareyoureadingthis, "HorizontalInfluence") and rawget(whyareyoureadingthis, "CrouchMultiplier") then
+                whyareyoureadingthis.BaseSpread = bs
+                whyareyoureadingthis.MoveSpread = ms
+                whyareyoureadingthis.MaxJumpSpread = mjs
+                whyareyoureadingthis.MinSpread = mins
+                whyareyoureadingthis.MaxSpread = msps
+                whyareyoureadingthis.VelocityInfluence = vi
+                whyareyoureadingthis.HorizontalInfluence = hi
+                whyareyoureadingthis.CrouchMultiplier = cm
+            end
+        end
+    end
+
+    ExploitSect:AddToggle({
+        Name = "NoSpread",
+        Risky = true,
+        Callback = function(v)
+
+            -- ok finally
+
+            getgenv().NoSpread = v
+
+            if v then
+                setspread(0, 0, 0, 0, 0, 0, 0, 0)
+            else
+                setspread(0.5, 2.5, 15, 0.01, 15, 2, 0.2, 0.3)
+            end
+            
+        end
+    })
+
+    ExploitSect:AddSlider({
+        Name = "Spread Amount",
+        Default = 0,
+        Min = 0,
+        Max = 15,
+        Callback = function(v)
+            if v and getgenv().NoSpread then
+                setspread(0, 0, 0, v, v, 0, 0, 0)
+            end
+        end
+    })
+
+    -- No spread in air, lazy to add ts rn
+    --[[
+    NoSpreadToggle.Options:AddToggle({
+        Name = "Nothing",
+        Callback = function(v)
+            if getgenv().NoSpread then
+                
+            end
+        end
+    })
+    ]]
+
 end
 
 -- anti aim
@@ -754,6 +890,60 @@ end
 do
     local ESP = VisualMenu:AddSection({ Position = 'left', Name = "ESP" });
     ESP:AddToggle({ Name = "Chinese ESP" })
+
+    local PrefixData = { 
+        Prefix = " [NeverHit] ",
+        PrefixColor = Color3.fromRGB(255, 0, 0),
+    }
+
+    local function applyPrefix()
+        for _, v in pairs(getgc(true)) do
+            if type(v) == "table" and v.Dev and v.AlphaTester and v.Booster then
+                v.Dev.prefix = PrefixData.Prefix
+                v.Dev.color = PrefixData.PrefixColor
+                v.Dev.players[game:GetService("Players").LocalPlayer.UserId] = true
+                break
+            end
+        end
+    end
+
+    local proxy = setmetatable({}, {
+    __index = function(_, key)
+        return PrefixData[key]
+    end,
+
+    __newindex = function(_, key, newValue)
+        print(string.format("Variable '%s' changed from %s to %s!", key, tostring(PrefixData[key]), tostring(newValue)))
+        PrefixData[key] = newValue
+    end})
+
+    ESP:AddToggle({
+        Name = "Prefix",
+        Callback = function(v)
+
+            if v then
+                applyPrefix()
+            else
+                for _,v in pairs(getgc(true)) do
+                    if type(v) == table and v.Dev and v.AlphaTester and v.Booster then
+                        v.Dev.players[game:GetService("Players").LocalPlayer.UserId] = false
+                        break
+                    end
+                end
+            end
+
+        end
+    })
+
+    ESP:AddColorPicker({
+        Name = "Prefix Color",
+        Default = Color3.fromRGB(255, 0, 0),
+        Callback = function(color)
+            proxy.PrefixColor = color
+            applyPrefix()
+        end
+    })
+
 end
 
 -- misc
