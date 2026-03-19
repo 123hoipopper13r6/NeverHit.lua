@@ -913,7 +913,7 @@ do
     end,
 
     __newindex = function(_, key, newValue)
-        print(string.format("Variable '%s' changed from %s to %s!", key, tostring(PrefixData[key]), tostring(newValue)))
+        --print(string.format("Var '%s' changed from %s to %s", key, tostring(PrefixData[key]), tostring(newValue)))
         PrefixData[key] = newValue
     end})
 
