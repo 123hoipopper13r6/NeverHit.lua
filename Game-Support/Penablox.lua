@@ -422,7 +422,260 @@ end
 -- Resolver
 
 task.spawn(function()
+    do
+        Notification:Notify({
+            Title = "NeverHit",
+            Content = 'Credits to hush for the "Divine.lua OLD" resolver.',
+            Duration = 10,
+            Icon = "bell"
+        })
 
+        -- divine old resolver (december, v 2.6.8 resolver. )
+        -- this old resolver is ass against static aa, but works good against jitter.
+        -- divine standalone resolver by hush / @mjzt on discord
+        -- for best results, turn off in game resolver
+        -- if youre going to use, credit me.
+
+
+
+        local cloneref = cloneref or function(obj) return obj end
+        local Workspace  = cloneref(game:GetService("Workspace"))
+        local RunService = cloneref(game:GetService("RunService"))
+        local Players    = cloneref(game:GetService("Players"))
+
+        local LocalPlayer = Players.LocalPlayer
+        local Camera      = Workspace.CurrentCamera
+
+        local Correction     = getgenv().DivineLuaCorrection or false
+        local LERP_ENABLED   = getgenv().DivineLuaLERPEnabled or false
+        local LERP_SPEED     = getgenv().DivineLuaLERPSpeed or 0.35
+        local BIAS_ANGLE     = getgenv().DivineLuaBIASAngle or math.rad(25)
+
+
+        local HIT_WINDOW  = 0.25
+        local STACK_LIMIT = 10
+        local FLUSH_TIME  = 2
+
+        local yawSamples  = {}
+        local resolvedYaw = {}
+        local lockedYaw   = {}
+
+        local lastHitTime = 0
+        local lastFlush   = os.clock()
+
+        local missCounter = {}
+        local lastMissed  = {}
+
+
+
+        local function norm(a)
+            return math.atan2(math.sin(a), math.cos(a))
+        end
+
+        local function diff(a, b)
+            return math.abs(norm(a - b))
+        end
+
+        local function lerpAngle(a, b, t)
+            return a + norm(b - a) * t
+        end
+
+
+
+        local function flushthis()
+            table.clear(yawSamples)
+            table.clear(resolvedYaw)
+            table.clear(lockedYaw)
+            lastFlush = os.clock()
+        end
+
+
+        local function getClosest()
+            local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+            if not myRoot then
+                return nil
+            end
+
+            local best, bestDist = nil, math.huge
+
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= LocalPlayer and plr.Character then
+                    local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+                    local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+
+                    if hrp and hum and hum.Health > 0 then
+                        local dist = (hrp.Position - myRoot.Position).Magnitude
+                        if dist < bestDist then
+                            best = plr
+                            bestDist = dist
+                        end
+                    end
+                end
+            end
+
+            return best
+        end
+
+
+
+        local function getHRPYaw(hrp)
+            local look = hrp.CFrame.LookVector 
+            return math.atan2(look.X, look.Z)
+        end
+
+
+        local function pushYaw(plr)
+            local hrp =
+                plr.Character
+                and plr.Character:FindFirstChild("HumanoidRootPart")
+
+            if not hrp then
+                return
+            end
+
+            yawSamples[plr] = yawSamples[plr] or {}
+            table.insert(yawSamples[plr], getHRPYaw(hrp))
+
+            if #yawSamples[plr] > STACK_LIMIT then
+                table.remove(yawSamples[plr], 1)
+            end
+        end
+
+
+
+        local function classifyAA(plr) --- ts isnt right, js says legit all the time.
+            local pile = yawSamples[plr]
+            if not pile or #pile < STACK_LIMIT then
+                return "LEGIT"
+            end
+
+            local totalDelta = 0
+            local flips = 0
+
+            for i = 2, #pile do
+                local d = diff(pile[i], pile[i - 1])
+                totalDelta += d
+
+                if math.sign(math.sin(pile[i])) ~= math.sign(math.sin(pile[i - 1])) then
+                    flips += 1
+                end
+            end
+
+            local avg = totalDelta / (#pile - 1)
+
+            if avg < math.rad(4) then
+                return "LEGIT"
+            elseif avg < math.rad(18) and flips < 3 then
+                return "STATIC_AA"
+            else
+                return "JITTER_AA"
+            end
+        end
+
+
+
+        --- this doesnt even work, i just forgot to remove it from the source lmfao, shit method anyways.
+        do
+            local oldPrint = print
+            print = function(...)
+                for _, v in ipairs({...}) do
+                    if tostring(v):find("Missed due to desync") then
+                        local unlucky = getClosest()
+                        if unlucky then
+                            missCounter[unlucky] = (missCounter[unlucky] or 0) + 1
+                            lockedYaw[unlucky] = nil
+                            resolvedYaw[unlucky] = nil
+                            lastMissed[unlucky] = true
+                        end
+                    end
+                end
+                oldPrint(...)
+            end
+        end
+
+
+        local function resolveYaw(plr) 
+            local hrp =
+                plr.Character
+                and plr.Character:FindFirstChild("HumanoidRootPart")
+
+            if not hrp then
+                return 0
+            end
+
+            local realYaw = getHRPYaw(hrp)
+            local mode = classifyAA(plr)
+
+            if mode == "LEGIT" then
+                return realYaw
+            end
+
+            if mode == "STATIC_AA" then
+                if not lockedYaw[plr] and os.clock() - lastHitTime <= HIT_WINDOW then
+                    lockedYaw[plr] = realYaw
+                    lastHitTime = 0
+                end
+                return lockedYaw[plr] or realYaw
+            end
+
+            local side = math.sign(math.sin(realYaw))
+
+            if lastMissed[plr] then
+                side = -side
+                lastMissed[plr] = nil
+            end
+
+            local biased = norm(realYaw + side * BIAS_ANGLE)
+
+            if LERP_ENABLED then
+                local last = resolvedYaw[plr] or biased
+                resolvedYaw[plr] = lerpAngle(last, biased, LERP_SPEED)
+                return resolvedYaw[plr]
+            end
+
+            return biased
+        end
+
+
+
+        local function applyYaw(plr, yaw)
+            local char = plr.Character
+            if not char then return end
+
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if not hrp then return end
+
+            local rj = hrp:FindFirstChild("RootJoint")
+            if not rj then return end
+
+            if not rj:GetAttribute("BaseC0") then
+                rj:SetAttribute("BaseC0", rj.C0)
+            end
+
+            rj.C0 = rj:GetAttribute("BaseC0") * CFrame.Angles(0, yaw, 0)
+        end
+
+
+        RunService.Heartbeat:Connect(function()
+            if not getgenv().CustomResolverEnabled or getgenv().CustomResolverMode ~= "Divine.lua OLD" then return end
+
+            if not getgenv().DivineLuaCorrection then
+                return
+            end
+
+            if os.clock() - lastFlush > FLUSH_TIME then
+                flushthis()
+            end
+
+            local tgt = getClosest()
+            if tgt then
+                pushYaw(tgt)
+                local yaw = resolveYaw(tgt)
+                applyYaw(tgt, yaw)
+            end
+        end)
+    end
 end)
 
 -- forcehit method by hooking the event, changing the hit part and hitpos, and then sending it to the server, it can miss sometimes because of how the game handles hit detection.
@@ -689,22 +942,25 @@ do
     local ExtaSect = RageMenu:AddSection({ Position = 'right', Name = "CONFIGURATION" });
 
     MainRage:AddToggle({
-        Name = "Custom resolver(didnt do it yet)",
+        Name = "Custom resolver",
         Callback = function(v)
             getgenv().CustomResolverEnabled = v
-
-            if v and game:GetService("Players").LocalPlayer:FindFirstChild("ResolverEnabled") then
-                game:GetService("Players").LocalPlayer.ResolverEnabled.Value = false
-            end
         end
     })
 
     MainRage:AddDropdown({
         Name = "Resolver Mode",
-        Values = {"NeverHit","Divine.lua OLD","Legit","Custom"},
+        --Values = {"NeverHit","Divine.lua OLD","Legit","Custom"},
+        Values = {"Divine.lua OLD"},
         Default = "None",
         Callback = function(v)
             getgenv().CustomResolverMode = v
+
+            if v == "Divine.lua OLD" then
+                getgenv().DivineLuaCorrection = v
+            else
+                getgenv().DivineLuaCorrection = false
+            end
         end
     })
 
@@ -829,6 +1085,46 @@ do
         end
     })
     ]]
+
+    ExtaSect:AddToggle({
+        Name = "Disable In-Game Resolver",
+        Callback = function(v)
+            if v and game:GetService("Players").LocalPlayer:FindFirstChild("ResolverEnabled") then
+                game:GetService("Players").LocalPlayer.ResolverEnabled.Value = false
+            elseif not v and game:GetService("Players").LocalPlayer:FindFirstChild("ResolverEnabled") then
+                game:GetService("Players").LocalPlayer.ResolverEnabled.Value = true
+            end
+        end
+    })
+
+    ExtaSect:AddToggle({
+        Name = "Divine Lua Lerp",
+        Callback = function(v)
+            getgenv().DivineLuaLERPEnabled = v
+        end
+    })
+
+    ExtaSect:AddSlider({
+        Name = "Divine Lerp",
+        Default = 0.35,
+        Min = 0,
+        Round = 2,
+        Max = 1,
+        Callback = function(v)
+            getgenv().DivineLuaLERPSpeed = v
+        end
+    })
+
+    ExtaSect:AddSlider({
+        Name = "Divine Bias",
+        Default = math.rad(25),
+        Min = 0,
+        Round = 2,
+        Max = math.rad(90),
+        Callback = function(v)
+            getgenv().DivineLuaBIASAngle = v
+        end
+    })
 
 end
 
@@ -1011,6 +1307,37 @@ local InfoMenu = Window:AddMenu({ Name = "Info", Icon = "info" })
 
 do
     local InfoSect = InfoMenu:AddSection({ Position = 'left', Name = "Info" });
+
+    InfoSect:AddButton({
+        Name = "GitHub",
+        Callback = function()
+            local s,f = pcall(function()
+                setclipboard("https://github.com/123hoipopper13r6/NeverHit.lua")
+            end)
+
+            if not s then
+                Notification:Notify({
+                    Title = "Error",
+                    Content = "Failed to copy to clipboard, get it manually: https://github.com/123hoipopper13r6/NeverHit.lua",
+                    Icon = "bell"
+                })
+            end
+        end
+    })
+
+    InfoSect:AddButton({
+        Name = "Current Version",
+        Callback = function()
+
+            pcall(function()
+                Notification:Notify({
+                    Title = "NeverHit",
+                    Content = "Current version: 0.9 Beta",
+                })
+            end)
+            
+        end
+    })
 
     InfoSect:AddButton({
         Name = "Discord Server",
