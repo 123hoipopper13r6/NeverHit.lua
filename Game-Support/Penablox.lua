@@ -1098,7 +1098,7 @@ do
     })
 
     ExtaSect:AddToggle({
-        Name = "Divine Lua Lerp",
+        Name = "Divine Lerp",
         Callback = function(v)
             getgenv().DivineLuaLERPEnabled = v
         end
