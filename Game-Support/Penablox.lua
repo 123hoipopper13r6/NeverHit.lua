@@ -626,11 +626,11 @@ task.spawn(function()
                 lastMissed[plr] = nil
             end
 
-            local biased = norm(realYaw + side * BIAS_ANGLE)
+            local biased = norm(realYaw + side * getgenv().DivineLuaBIASAngle)
 
-            if LERP_ENABLED then
+            if getgenv().DivineLuaLERPEnabled then
                 local last = resolvedYaw[plr] or biased
-                resolvedYaw[plr] = lerpAngle(last, biased, LERP_SPEED)
+                resolvedYaw[plr] = lerpAngle(last, biased, getgenv().DivineLuaLERPSpeed)
                 return resolvedYaw[plr]
             end
 
