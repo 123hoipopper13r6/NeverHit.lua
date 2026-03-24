@@ -179,3 +179,35 @@ do
         getgenv().AutoHeal = value
     end })
 end
+
+
+-- Info
+
+local InfoMenu = Window:AddMenu({ Name = "Info", Icon = "info" })
+
+do
+    local InfoSect = InfoMenu:AddSection({ Position = 'left', Name = "Info" });
+
+    InfoSect:AddButton({
+        Name = "Discord Server",
+        Callback = function()
+            local s,f = pcall(function()
+                setclipboard("https://discord.gg/sMv9YeXbYR")
+
+                Notification:Notify({
+                    Title = "NeverHit",
+                    Content = "Discord server link copied to clipboard!",
+                })
+            end)
+
+            if not s then
+                Notification:Notify({
+                    Title = "Error",
+                    Content = "Failed to copy to clipboard, get it manually: https://discord.gg/sMv9YeXbYR",
+                    Icon = "bell"
+                })
+            end
+            
+        end
+    })
+end
