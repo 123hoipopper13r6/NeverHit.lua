@@ -419,6 +419,12 @@ end
 
 -- Ragebot
 
+-- Resolver
+
+task.spawn(function()
+
+end)
+
 -- forcehit method by hooking the event, changing the hit part and hitpos, and then sending it to the server, it can miss sometimes because of how the game handles hit detection.
 
 task.spawn(function()
@@ -654,13 +660,13 @@ end)
 
 -- ui
 
+Fatality:Loader({ Name = "NEVERHIT.LUA", Duration = 3 });
+
 -- wait until the player's gui is visible
 
 repeat task.wait() until game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("LimoriaUI") and game:GetService("Players").LocalPlayer.PlayerGui.LimoriaUI.Window.Visible == true
 
 -- load it
-
-Fatality:Loader({ Name = "NEVERHIT.LUA", Duration = 3 });
 
 Notification:Notify({
     Title = "NEVERHIT",
@@ -783,7 +789,7 @@ do
     end
 
     ExploitSect:AddToggle({
-        Name = "NoSpread",
+        Name = "Spread Modifier",
         Risky = true,
         Callback = function(v)
 
@@ -913,7 +919,7 @@ do
     end,
 
     __newindex = function(_, key, newValue)
-        --print(string.format("Var '%s' changed from %s to %s", key, tostring(PrefixData[key]), tostring(newValue)))
+        -- print(string.format("Var '%s' changed from %s to %s", key, tostring(PrefixData[key]), tostring(newValue)))
         PrefixData[key] = newValue
     end})
 
@@ -995,6 +1001,37 @@ do
         Risky = true,
         Callback = function(v)
             getgenv().HitboxExtenderEnabled = v
+        end
+    })
+end
+
+-- Info
+
+local InfoMenu = Window:AddMenu({ Name = "Info", Icon = "info" })
+
+do
+    local InfoSect = InfoMenu:AddSection({ Position = 'left', Name = "Info" });
+
+    InfoSect:AddButton({
+        Name = "Discord Server",
+        Callback = function()
+            local s,f = pcall(function()
+                setclipboard("https://discord.gg/sMv9YeXbYR")
+
+                Notification:Notify({
+                    Title = "NeverHit",
+                    Content = "Discord server link copied to clipboard!",
+                })
+            end)
+
+            if not s then
+                Notification:Notify({
+                    Title = "Error",
+                    Content = "Failed to copy to clipboard, get it manually: https://discord.gg/sMv9YeXbYR",
+                    Icon = "bell"
+                })
+            end
+            
         end
     })
 end
