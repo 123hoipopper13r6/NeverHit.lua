@@ -313,7 +313,7 @@ local function Start()
 	if GameRegistry[1] then GameRegistry[1]() end
 end
 
-AddGame("Universal", 3392487150, function() print("Universal Loaded") end)
+AddGame("Universal", 3392487150, function() print("Test") end)
 AddGame("Penablox HvH", 122764594952227, function() loadstring(game:HttpGet("https://raw.githubusercontent.com/123hoipopper13r6/NeverHit.lua/refs/heads/main/Game-Support/Penablox.lua"))() end)
 AddGame("Europhium HvH", 82638711520338, function() loadstring(game:HttpGet("https://raw.githubusercontent.com/123hoipopper13r6/NeverHit.lua/refs/heads/main/Game-Support/Europhium.lua"))() end)
 AddGame("Sultanisimus HvH", 120331934510435, function() loadstring(game:HttpGet("https://raw.githubusercontent.com/123hoipopper13r6/NeverHit.lua/refs/heads/main/Game-Support/Sultanisimus.lua"))() end)
