@@ -30,7 +30,7 @@ local Notification = Fatality:CreateNotifier();
 
 
 if game.PlaceId ~= 122764594952227 then
-    Notification:Notify({ Title = "bell", Content = "This script is for Penablox HVH only!", Icon = "alert" })
+    Notification:Notify({ Title = "Error", Content = "This script is for Penablox HVH only!", Icon = "bell" })
     return
 end
 
@@ -218,7 +218,7 @@ task.spawn(function()
     end
 
     for _, v in pairs(getgc(true)) do
-        if type(v) == "table" and rawget(v, "WalkspeedProtect") then
+        if type(v) == table and rawget(v, "WalkspeedProtect") then
 
             -- Movement checks
             v.WalkspeedProtect.enabled = false
@@ -927,12 +927,35 @@ Notification:Notify({
     Icon = "clipboard"
 })
 
-local Window = Fatality.new({ Name = "NEVERHIT", Expire = "never" });
+local Window = Fatality.new({ Name = "NEVERHIT", Expire = "Free", Keybind = "NONE" });
+
+task.spawn(function()
+    local uis = game:GetService("UserInputService")
+    getgenv().OpenKey = Enum.KeyCode.Insert
+
+    getgenv().ToggleMenu = function()
+        Window:SetVisible(not Window.Toggle)
+    end
+
+    uis.InputBegan:Connect(function(input, gp)
+        if gp and not getgenv().IgnoreGP then return end
+        
+        if input.KeyCode == getgenv().OpenKey or input.KeyCode.Name == tostring(getgenv().OpenKey) then
+            ToggleMenu()
+        end
+    end)
+end)
 
 local RageMenu = Window:AddMenu({ Name = "Rage", Icon = "skull" })
 local AntiAimMenu = Window:AddMenu({ Name = "Anti Aim", Icon = "shield" })
 local VisualMenu = Window:AddMenu({ Name = "Visuals", Icon = "eye" })
 local MiscMenu = Window:AddMenu({ Name = "Misc", Icon = "settings" })
+local SettingsMenu = Window:AddMenu({ Name = "Settings", Icon = "cog" })
+
+-- Cfg
+
+local ConfigSystem = Window:AddConfig()
+ConfigSystem:Init("NeverHit", "FatalityUI")
 
 -- ragebot
 
@@ -943,6 +966,7 @@ do
 
     MainRage:AddToggle({
         Name = "Custom resolver",
+        Flag = "CustomResolverEnabled",
         Callback = function(v)
             getgenv().CustomResolverEnabled = v
         end
@@ -950,6 +974,7 @@ do
 
     MainRage:AddDropdown({
         Name = "Resolver Mode",
+        Flag = "CustomResolverMode",
         --Values = {"NeverHit","Divine.lua OLD","Legit","Custom"},
         Values = {"Divine.lua OLD"},
         Default = "None",
@@ -966,6 +991,7 @@ do
 
     local forcehittoggle = ExploitSect:AddToggle({
         Name = "Force Hit",
+        Flag = "ForceHitEnabled",
         Risky = true,
         Option = true,
         Callback = function(v)
@@ -979,6 +1005,7 @@ do
 
     forcehittoggle.Option:AddDropdown({
         Name = "Method",
+        Flag = "ForceHitMethod",
         Values = {"Event Hook"},
         Default = "Event Hook",
         Callback = function(v)
@@ -988,6 +1015,7 @@ do
 
     forcehittoggle.Option:AddDropdown({
         Name = "Hit Position",
+        Flag = "ForceHitHitPos",
         Values = {"Auto","Head","Torso","HumanoidRootPart","Arms","Legs"},
         Default = "Auto",
         Callback = function(v)
@@ -1001,6 +1029,7 @@ do
 
     forcehittoggle.Option:AddDropdown({
         Name = "Damage Part",
+        Flag = "ForceHitDamagePart",
         Values = {"Head","Torso","HumanoidRootPart","Arms","Legs"},
         Default = "Head",
         Callback = function(v)
@@ -1010,6 +1039,7 @@ do
 
     ExploitSect:AddToggle({
         Name = "Infinite Ammo",
+        Flag = "InfiniteAmmo",
         Risky = true,
         Callback = function(v)
             getgenv().InfiniteAmmo = v
@@ -1046,6 +1076,7 @@ do
 
     ExploitSect:AddToggle({
         Name = "Spread Modifier",
+        Flag = "NoSpread",
         Risky = true,
         Callback = function(v)
 
@@ -1064,6 +1095,7 @@ do
 
     ExploitSect:AddSlider({
         Name = "Spread Amount",
+        Flag = "SpreadAmount",
         Default = 0,
         Min = 0,
         Max = 15,
@@ -1088,6 +1120,7 @@ do
 
     ExtaSect:AddToggle({
         Name = "Disable In-Game Resolver",
+        Flag = "DisableInGameResolver",
         Callback = function(v)
             if v and game:GetService("Players").LocalPlayer:FindFirstChild("ResolverEnabled") then
                 game:GetService("Players").LocalPlayer.ResolverEnabled.Value = false
@@ -1099,6 +1132,7 @@ do
 
     ExtaSect:AddToggle({
         Name = "Divine Lerp",
+        Flag = "DivineLerpEnabled",
         Callback = function(v)
             getgenv().DivineLuaLERPEnabled = v
         end
@@ -1106,6 +1140,7 @@ do
 
     ExtaSect:AddSlider({
         Name = "Divine Lerp",
+        Flag = "DivineLerpSpeed",
         Default = 0.35,
         Min = 0,
         Round = 2,
@@ -1117,6 +1152,7 @@ do
 
     ExtaSect:AddSlider({
         Name = "Divine Bias",
+        Flag = "DivineBiasAngle",
         Default = math.rad(25),
         Min = 0,
         Round = 2,
@@ -1137,6 +1173,7 @@ do
 
     AA_General:AddToggle({
         Name = "Enable Anti-Aim",
+        Flag = "AntiAimEnabled",
         Callback = function(v)
             getgenv().AntiAimEnabled = v
         end
@@ -1144,6 +1181,7 @@ do
 
     AA_General:AddDropdown({
         Name = "Mode",
+        Flag = "AntiAimMode",
         Values = {"Static","Offset","Center","3-Way","5-Way","Off","NeverHit"},
         Default = "Static",
         Callback = function(v)
@@ -1153,6 +1191,7 @@ do
 
     AA_Angles:AddSlider({
         Name = "Yaw Left", Default = 0, Min = -180, Max = 180,
+        Flag = "YawLeft",
         Callback = function(v)
             getgenv().leftantiaim = v
         end
@@ -1160,6 +1199,7 @@ do
 
     AA_Angles:AddSlider({
         Name = "Yaw Right", Default = 0, Min = -180, Max = 180,
+        Flag = "YawRight",
         Callback = function(v)
             getgenv().rightantiaim = v
         end
@@ -1167,6 +1207,7 @@ do
 
     AA_Angles:AddSlider({
         Name = "Pitch", Default = 0, Min = -90, Max = 90,
+        Flag = "Pitch",
         Callback = function(v)
             getgenv().Pitchantiaim = v
         end
@@ -1174,6 +1215,7 @@ do
 
     AA_Extra:AddSlider({
         Name = "Jitter Amount", Default = 0, Max = 180,
+        Flag = "JitterAmount",
         Callback = function(v)
             getgenv().antiaimjitter = v
         end
@@ -1181,6 +1223,8 @@ do
 
     AA_Extra:AddSlider({
         Name = "Delay", Default = 0, Min = 0.0 , Max = 1.0,
+        Flag = "AntiAimDelay",
+        Round = 2,
         Callback = function(v)
             getgenv().antiaimdelayness = v
         end
@@ -1191,7 +1235,13 @@ end
 
 do
     local ESP = VisualMenu:AddSection({ Position = 'left', Name = "ESP" });
-    ESP:AddToggle({ Name = "Chinese ESP" })
+    ESP:AddToggle({
+        Name = "Chinese ESP",
+        Flag = "ChineseESP",
+        Callback = function(v)            
+            getgenv().ChineseESP = v
+        end
+    })
 
     local PrefixData = { 
         Prefix = " [NeverHit] ",
@@ -1221,6 +1271,7 @@ do
 
     ESP:AddToggle({
         Name = "Prefix",
+        Flag = "PrefixEnabled",
         Callback = function(v)
 
             if v then
@@ -1239,6 +1290,7 @@ do
 
     ESP:AddColorPicker({
         Name = "Prefix Color",
+        Flag = "PrefixColor",
         Default = Color3.fromRGB(255, 0, 0),
         Callback = function(color)
             proxy.PrefixColor = color
@@ -1255,6 +1307,7 @@ do
 
     Exploits:AddToggle({
         Name = "Remove Velocity",
+        Flag = "RemoveVelocity",
         Risky = true,
         Callback = function(v)
             getgenv().RemoveVelocity = v
@@ -1278,6 +1331,7 @@ do
 
     Exploits:AddToggle({
         Name = "Remove Math.Random()",
+        Flag = "RemoveMathRandom",
         Risky = true,
         Callback = function(v)
             getgenv().RemoveMathRandom = v
@@ -1286,6 +1340,7 @@ do
 
     Exploits:AddToggle({
         Name = "Infinite Velocity",
+        Flag = "InfiniteVelocity",
         Risky = true,
         Callback = function(v)
             getgenv().InfiniteVelocity = v
@@ -1294,9 +1349,31 @@ do
 
     Exploits:AddToggle({
         Name = "Hitbox Extender(Beta)",
+        Flag = "HitboxExtenderEnabled",
         Risky = true,
         Callback = function(v)
             getgenv().HitboxExtenderEnabled = v
+        end
+    })
+end
+
+do
+    local MenuSect = SettingsMenu:AddSection({ Position = 'left', Name = "Menu" });
+
+    MenuSect:AddKeybind({
+        Name = "Keybind",
+        Flag = "MenuToggleKey",
+        Default = Enum.KeyCode.Insert,
+        Callback = function(v)
+            getgenv().OpenKey = v
+	    end
+    })
+
+    MenuSect:AddToggle({
+        Name = "Ignore Game Processed",
+        Flag = "IgnoreGP",
+        Callback = function(v)
+            getgenv().IgnoreGP = v
         end
     })
 end
@@ -1313,6 +1390,11 @@ do
         Callback = function()
             local s,f = pcall(function()
                 setclipboard("https://github.com/123hoipopper13r6/NeverHit.lua")
+
+                Notification:Notify({
+                    Title = "NeverHit",
+                    Content = "GitHub link copied to clipboard!",
+                })
             end)
 
             if not s then
