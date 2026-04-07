@@ -1222,9 +1222,9 @@ do
     })
 
     AA_Extra:AddSlider({
-        Name = "Delay", Default = 0, Min = 0.0 , Max = 1.0,
+        Name = "Delay", Default = 0, Min = 0.00 , Max = 0.011,
         Flag = "AntiAimDelay",
-        Round = 2,
+        Round = 3,
         Callback = function(v)
             getgenv().antiaimdelayness = v
         end
