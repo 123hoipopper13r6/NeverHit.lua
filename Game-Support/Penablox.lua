@@ -301,8 +301,10 @@ task.spawn(function()
                 AAHandler.SendYawJitter(
                     nil,
                     getgenv().typeofantiaim or "Static",
+
                     getgenv().leftantiaim or 0,
                     getgenv().rightantiaim or 0,
+
                     getgenv().antiaimjitter or 0,
                     getgenv().antiaimdelayness or 0,
                     getgenv().antiaimrandomness or 0
@@ -843,6 +845,7 @@ end)
 
 -- hitbox extender
 
+--[[
 task.spawn(function()
     while task.wait(1) do
         if not getgenv().HitboxExtenderEnabled then return end
@@ -867,6 +870,7 @@ task.spawn(function()
         end
     end
 end)
+]]
 
 -- other stuff
 
@@ -1213,6 +1217,14 @@ do
         end
     })
 
+    AA_Angles:AddSlider({
+        Name = "Body Yaw", Default = 0, Min = -80, Max = 80,
+        Flag = "BodyYaw",
+        Callback = function(v)
+            getgenv().BodyYawantiaim = v
+        end
+    })
+
     AA_Extra:AddSlider({
         Name = "Jitter Amount", Default = 0, Max = 180,
         Flag = "JitterAmount",
@@ -1338,6 +1350,9 @@ do
         end
     })
 
+
+    -- useless feature 
+    --[[
     Exploits:AddToggle({
         Name = "Infinite Velocity",
         Flag = "InfiniteVelocity",
@@ -1346,7 +1361,11 @@ do
             getgenv().InfiniteVelocity = v
         end
     })
+    ]]
 
+
+    -- disabled due to not working
+    --[[
     Exploits:AddToggle({
         Name = "Hitbox Extender(Beta)",
         Flag = "HitboxExtenderEnabled",
@@ -1355,6 +1374,8 @@ do
             getgenv().HitboxExtenderEnabled = v
         end
     })
+    ]]
+
 end
 
 do
