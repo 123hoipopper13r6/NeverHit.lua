@@ -318,6 +318,7 @@ end)
 
 -- Infinite Velocity
 
+--[[
 task.spawn(function()
     if not checkspecificfunction("hookmetamethod") then
 
@@ -342,6 +343,7 @@ task.spawn(function()
     end)
 
 end)
+]]
 
 -- find the closet player for the shot
 
