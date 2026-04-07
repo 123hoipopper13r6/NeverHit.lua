@@ -272,6 +272,28 @@ end)
 
 task.spawn(function()
 
+    local antiaimyawfailed = false
+
+    local function hookyaw()
+        local plr = game:GetService("Players").LocalPlayer
+        local chr = plr.Character or plr.CharacterAdded:Wait()
+        local Root = chr:WaitForChild("HumanoidRootPart")
+
+        local oldNewIndex
+        oldNewIndex = hookmetamethod(game, "__newindex", function(self, key, value)
+            if not checkcaller() and self == Root and key == "CFrame" and getgenv().AntiAimEnabled then
+                local rot = getgenv().BaseYawantiaim or 0
+                value = value * CFrame.Angles(0, math.rad(rot), 0)
+            end
+            return oldNewIndex(self, key, value)
+        end)
+    end
+
+    local s_hook, e_hook = pcall(hookyaw)
+    if not s_hook then
+        warn("Failed to hook yaw: " .. tostring(e_hook))
+    end
+
     if not checkspecificfunction("require") then
 
         Notification:Notify({
@@ -282,6 +304,17 @@ task.spawn(function()
         
         --warn("require is missing, can't start anti-aim.")
         return
+    end
+
+    if not checkspecificfunction("hookmetamethod") then
+
+        Notification:Notify({
+            Title = "Warning",
+            Content = "hookmetamethod is missing, some anti-aim features might not work.",
+            Icon = "bell"
+        })
+        
+        --warn("hookmetamethod is missing, some anti-aim features might not work.")
     end
 
     if getgenv().AAIsLooped then return end
@@ -295,12 +328,15 @@ task.spawn(function()
             warn("AAHandler is missing.")
             return
         end
+        
+        -- broke everything exepct pitch
 
         if getgenv().AntiAimEnabled then
-            pcall(function()
+            local smainses , fmainses = pcall(function()
                 AAHandler.SendYawJitter(
                     nil,
                     getgenv().typeofantiaim or "Static",
+                    getgenv().BaseYawantiaim or 0,
 
                     getgenv().leftantiaim or 0,
                     getgenv().rightantiaim or 0,
@@ -311,7 +347,22 @@ task.spawn(function()
                 )
                 AAHandler.SendBodyYaw(nil, getgenv().BodyYawantiaim or 0)
                 AAHandler.SendPitchMode(nil, "Static", getgenv().Pitchantiaim or 0, 0, 0, 0, 0, 0)
+
+                -- yaw
+
             end)
+
+            if not smainses then
+                
+                Notification:Notify({
+                    Title = "Warning",
+                    Content = "Failed to send anti-aim data, error: " .. tostring(fmainses),
+                    Icon = "bell"
+                })
+
+                --warn("Failed to send anti-aim data, error: " .. tostring(fmainses))
+            end
+
         end
     end
 end)
@@ -1192,6 +1243,14 @@ do
         Default = "Static",
         Callback = function(v)
             getgenv().typeofantiaim = v
+        end
+    })
+
+    AA_Angles:AddSlider({
+        Name = "Base Yaw", Default = 0, Min = -180, Max = 180,
+        Flag = "BaseYaw",
+        Callback = function(v)
+            getgenv().BaseYawantiaim = v
         end
     })
 
