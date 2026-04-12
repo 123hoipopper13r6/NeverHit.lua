@@ -30,7 +30,7 @@ local Notification = Fatality:CreateNotifier();
 
 --https://www.roblox.com/games/82638711520338/europhium-hvh
 if game.PlaceId ~= 82638711520338 then
-    Notification:Notify({ Title = "bell", Content = "This script is for Europhium HvH only!", Icon = "alert" })
+    Notification:Notify({ Title = "Notification", Content = "This script is for Europhium HvH only!", Icon = "bell" })
     return
 end
 
@@ -85,7 +85,6 @@ local function checkifsupported()
         return false
     else
         --warn("Script may not work or crash. Missing functions: " .. table.concat(missing, ", "))
-        --print("If hookfunction is missing, then Ragebot(Event Hook) is not gonna work.")
 
         Notification:Notify({
             Title = "NeverHit",
@@ -156,6 +155,29 @@ end))
 
 -- No Spread
 
+do
+    pcall(function()
+        for _, v in pairs(getgc(true)) do
+            if type(v) == "function" and islclosure(v) then
+
+                local constants = debug.getconstants(v)
+                
+                if table.find(constants, "SpreadJumping") then
+                    hookfunction(v, function()
+                        if getgenv().NoSpread then
+                            return 0
+                        else
+                            return v
+                        end
+                    end)
+                end
+
+            end
+        end
+    end)
+end
+
+--[[
 local oldMathRandom
 oldMathRandom = hookfunction(math.random, function(...)
     local args = {...}
@@ -170,8 +192,140 @@ oldMathRandom = hookfunction(math.random, function(...)
         end
     end
     return oldMathRandom(...)
-end)
+end)]]
 
+-- NaN Pitch
+
+do 
+    local oldNamecall
+    oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
+        local args = {...}
+        local method = getnamecallmethod()
+
+        if method == "FireServer" and tostring(self) == "ConfigUpdateEvent" then
+            if getgenv().AntiAim and getgenv().AntiAim.NaNPitch then
+                if type(args[1]) == "table" and args[1].Pitch ~= nil then
+                    args[1].Pitch = 0/0
+                end
+            end
+        end
+
+        return oldNamecall(self, unpack(args))
+    end))
+end
+
+
+-- Gun Mods
+
+function applyGunMod(gun, mod, value)
+
+    local ScoutStats = {
+        ["Firerate"] = 0.8,
+        ["SpreadStanding"] = 0.4,
+        ["SpreadWalking"] = 1,
+        ["SpreadJumping"] = 8,
+        ["Damage"] = 84,
+        ["AutoStopHoldTime"] = 0.25,
+        ["MoveSpreadMultiplier"] = 0.02,
+        ["ReloadTime"] = 3.5,
+        ["Ammo"] = 10,
+        ["CanScope"] = true
+    }
+
+    local DeagleStats = {
+        ["Firerate"] = 3,
+        ["SpreadStanding"] = 0.6,
+        ["SpreadWalking"] = 1.5,
+        ["SpreadJumping"] = 15,
+        ["Damage"] = 63,
+        ["AutoStopHoldTime"] = 0.25,
+        ["MoveSpreadMultiplier"] = 0.05,
+        ["ReloadTime"] = 2.5,
+        ["Ammo"] = 7,
+        ["CanScope"] = false
+    }
+
+    local deagle, scout
+
+    local s,e = pcall(function()
+        for _, v in pairs(getgc(true)) do
+            if type(v) == "table" then
+                if rawget(v, "SpreadStanding") and rawget(v, "Firerate") then
+                    if v.Firerate == ScoutStats.Firerate and v.SpreadStanding == ScoutStats.SpreadStanding and v.CanScope == ScoutStats.CanScope then
+                        scout = v
+                    elseif v.Firerate == DeagleStats.Firerate and v.SpreadStanding == DeagleStats.SpreadStanding and v.CanScope == DeagleStats.CanScope then
+                        deagle = v
+                    end
+                end
+            end
+        end
+
+        if gun == "All" and scout and deagle then
+            if mod == "InfiniteAmmo" then
+                scout.Ammo = 0/0
+                deagle.Ammo = 0/0
+            elseif mod == "DamageMultiplier" and value then
+                scout.Damage = ScoutStats.Damage * value
+                deagle.Damage = DeagleStats.Damage * value
+            elseif mod == "FastFireRate" then
+                scout.Firerate = 0/0
+                deagle.Firerate = 0/0
+            elseif mod == "InstaReload" then
+                scout.ReloadTime = 0.01
+                deagle.ReloadTime = 0.01
+            end
+        end
+
+        if gun == "Scout" and scout then
+            if mod == "InfiniteAmmo" then
+                scout.Ammo = 0/0
+            elseif mod == "DamageMultiplier" and value then
+                scout.Damage = ScoutStats.Damage * value
+            elseif mod == "FastFireRate" then
+                scout.Firerate = 0/0
+            elseif mod == "InstaReload" then
+                scout.ReloadTime = 0.01
+            end
+        end
+
+        if gun == "Deagle" and deagle then
+            if mod == "InfiniteAmmo" then
+                deagle.Ammo = 0/0
+            elseif mod == "DamageMultiplier" and value then
+                deagle.Damage = DeagleStats.Damage * value
+            elseif mod == "FastFireRate" then
+                deagle.Firerate = 0/0
+            elseif mod == "InstaReload" then
+                deagle.ReloadTime = 0.01
+            end
+        end
+
+        if gun == "Reset" then
+            if scout then
+                for stat, val in pairs(ScoutStats) do
+                    scout[stat] = val
+                end
+            end
+
+            if deagle then
+                for stat, val in pairs(DeagleStats) do
+                    deagle[stat] = val
+                end
+            end
+        end
+    end)
+
+    if not s then
+        Notification:Notify({
+            Title = "Error",
+            Content = ("Failed to apply gun mod," .. tostring(e)),
+            Icon = "bell"
+        })
+
+        --warn("Failed to apply gun mod: " .. tostring(e))
+    end
+
+end
 
 -- Ui
 
@@ -183,7 +337,7 @@ Notification:Notify({
     Icon = "clipboard"
 })
 
-local Window = Fatality.new({ Name = "NEVERHIT", Expire = "never" });
+local Window = Fatality.new({ Name = "NEVERHIT", Expire = "Free" });
 
 local RageMenu = Window:AddMenu({ Name = "Rage", Icon = "skull" })
 local AntiAimMenu = Window:AddMenu({ Name = "Anti Aim", Icon = "shield" })
@@ -192,6 +346,7 @@ local MiscMenu = Window:AddMenu({ Name = "Misc", Icon = "settings" })
 
 do
     local RageSect = RageMenu:AddSection({ Position = 'left', Name = "Main" });
+    local GunSect = RageMenu:AddSection({ Position = 'left', Name = "Gun Mods" });
     local ExpSect = RageMenu:AddSection({ Position = 'center', Name = "Exploits" });
     local ConfigSect = RageMenu:AddSection({ Position = 'right', Name = "Configs" });
 
@@ -222,10 +377,87 @@ do
         end
     })
 
+    GunSect:AddDropdown({
+        Name = "Gun",
+        Values = {"All", "Scout", "Deagle"},
+        Default = "All",
+        Callback = function(v)
+            getgenv().SelectedGun = v
+        end
+    })
+
+    GunSect:AddToggle({
+        Name = "Inf Ammo",
+        Callback = function(v)
+            applyGunMod("All", "InfiniteAmmo", v)
+        end
+    })
+
+    GunSect:AddToggle({
+        Name = "Damage Multiplier",
+        Callback = function(v)
+            pcall(function()
+                applyGunMod(getgenv().SelectedGun or "All", "DamageMultiplier", v and 5 or 1)
+            end)
+        end
+    })
+
+    GunSect:AddSlider({
+        Name = "Damage Multiplier",
+        Min = 1,
+        Max = 100,
+        Default = 1,
+        Callback = function(v)
+            pcall(function()
+                applyGunMod(getgenv().SelectedGun or "All", "DamageMultiplier", v)
+            end)
+        end
+    })
+
+    GunSect:AddToggle({
+        Name = "Fast Firerate",
+        Callback = function(v)
+            pcall(function()
+                applyGunMod(getgenv().SelectedGun or "All", "FastFireRate", v)
+            end)
+        end
+    })
+
+    GunSect:AddToggle({
+        Name = "Insta Reload",
+        Callback = function(v)
+            pcall(function()
+                applyGunMod(getgenv().SelectedGun or "All", "InstaReload", v)
+            end)
+        end
+    })
+
+    GunSect:AddButton({
+        Name = "Reset Gun Mods",
+        Callback = function(v)
+            pcall(function()
+                applyGunMod("Reset")
+            end)
+        end
+    })
+
     ExpSect:AddToggle({
         Name = "No Spread",
         Callback = function(v)
             getgenv().NoSpread = v
+        end
+    })
+end
+
+do
+    local AntiAimSect = AntiAimMenu:AddSection({ Position = 'left', Name = "Main" });
+    local ExploitSect = AntiAimMenu:AddSection({ Position = 'center', Name = "Exploits" });
+
+    ExploitSect:AddToggle({
+        Name = "NaN pitch",
+        Callback = function(v)
+            getgenv().AntiAim = getgenv().AntiAim or {}
+            getgenv().AntiAim.NaNPitch = v
         end
     })
 end
