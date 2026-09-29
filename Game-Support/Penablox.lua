@@ -1,7 +1,7 @@
 -- ui lib
 
 -- https://cat-sus.gitbook.io/fatality
-local Fatality = loadstring(game:HttpGet("https://raw.githubusercontent.com/4lpaca-pin/Fatality/refs/heads/main/src/source.luau"))();
+local Fatality = loadstring(game:HttpGet("https://raw.githubusercontent.com/123hoipopper13r6/Fatality-UI-backup/refs/heads/main/src/source.luau"))();
 
 
 if not Fatality then
@@ -33,6 +33,8 @@ if game.PlaceId ~= 122764594952227 then
     Notification:Notify({ Title = "Error", Content = "This script is for Penablox HVH only!", Icon = "bell" })
     return
 end
+
+Notification:Notify({ Title = "Cautious", Content = "Beta version!", Icon = "bell" })
 
 -- check if the executor is supported
 

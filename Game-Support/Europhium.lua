@@ -1,7 +1,9 @@
 -- ui lib
 
+-- HEADS UP: THIS IS A BETA VERSION, IT WAS SUPPOSED TO BE RELEASED AFTER SOME CHANGES BUT I FORGOT WHAT DID I CHANGE SO IT MIGHT BE BUGGY.
+
 -- https://cat-sus.gitbook.io/fatality
-local Fatality = loadstring(game:HttpGet("https://raw.githubusercontent.com/4lpaca-pin/Fatality/refs/heads/main/src/source.luau"))();
+local Fatality = loadstring(game:HttpGet("https://raw.githubusercontent.com/123hoipopper13r6/Fatality-UI-backup/refs/heads/main/src/source.luau"))();
 
 
 if not Fatality then
