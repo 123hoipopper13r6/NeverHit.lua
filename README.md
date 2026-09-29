@@ -5,7 +5,7 @@ A Roblox HvH (Hacker vs. Hacker) script, for games like **PenaBlox HvH**.
 ![Roblox](https://img.shields.io/badge/Platform-Roblox-00A2FF?style=flat-square&logo=roblox&logoColor=white)
 ![Language](https://img.shields.io/badge/Language-Luau-blue?style=flat-square)
 ![Discord](https://img.shields.io/discord/1485034102649262242?style=flat-square&logo=Discord)
--# [Discord](https://discord.gg/sMv9YeXbYR)
+[Discord link](https://discord.gg/sMv9YeXbYR)
 
 ---
 
@@ -22,7 +22,7 @@ A Roblox HvH (Hacker vs. Hacker) script, for games like **PenaBlox HvH**.
 Run the script directly using your executor(Madium,Real,Volt and etc...):
 
 ```lua
-loadstring(game:HttpGet("https://github.com/123hoipopper13r6/NeverHit.lua/blob/main/Loader.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/123hoipopper13r6/NeverHit.lua/refs/heads/main/Loader.lua"))()
 ```
 
 ---
